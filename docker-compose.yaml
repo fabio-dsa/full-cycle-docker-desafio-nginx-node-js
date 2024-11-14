@@ -1,0 +1,46 @@
+services:
+  app:
+    build: 
+      context: app
+    container_name: app
+    entrypoint: dockerize -wait tcp://database:3306 -timeout 30s -- node index.js
+    volumes:
+      - ./app:/usr/src/app
+    networks:
+      - desafio
+    ports:
+      - "3000:3000"
+    depends_on:
+      - database
+
+  database:
+    image: mysql:5.7
+    container_name: database
+    restart: always
+    volumes:
+      - ./database/mysql:/var/lib/mysql
+      - ./database/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - MYSQL_DATABASE=desafio_nginx_node
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=usr_desafio
+      - MYSQL_PASSWORD=usr_desafio
+    networks:
+      - desafio
+
+  nginx:
+    build:
+      context: ./nginx
+    container_name: nginx
+    entrypoint: dockerize -wait tcp://app:3000 -timeout 30s -- nginx -g 'daemon off;'
+    networks:
+      - desafio
+    ports:
+      - 8080:80
+    depends_on:
+      - app
+
+networks:
+  desafio:
+    name: desafio
+    driver: bridge
