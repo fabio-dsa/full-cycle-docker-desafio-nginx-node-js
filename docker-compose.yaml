@@ -3,7 +3,9 @@ services:
     build: 
       context: app
     container_name: app
-    entrypoint: dockerize -wait tcp://database:3306 -timeout 30s -- node index.js
+    volumes:
+      - ./app:/usr/src/app
+    entrypoint: dockerize -wait tcp://database:3306 -timeout 60s -- sh -c "npm install && node index.js"
     networks:
       - desafio
     ports:
@@ -31,7 +33,7 @@ services:
     build:
       context: ./nginx
     container_name: nginx
-    entrypoint: dockerize -wait tcp://app:3000 -timeout 30s -- nginx -g 'daemon off;'
+    entrypoint: dockerize -wait tcp://app:3000 -timeout 60s -- nginx -g 'daemon off;'
     networks:
       - desafio
     ports:
